@@ -18,10 +18,9 @@ const createNew = async (req, res, next) => {
   try {
     // using abortEarly: false to return all validation errors
     await correctCondition.validateAsync(req.body, { abortEarly: false });
-    //next();
-    res.status(StatusCodes.CREATED).json({
-      message: "POST: Create Board API",
-    });
+
+    // Validation passed, proceed to the next middleware
+    next();
   } catch (error) {
     console.log(new Error(error));
     res
