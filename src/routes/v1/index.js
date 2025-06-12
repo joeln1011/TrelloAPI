@@ -1,7 +1,7 @@
 import express from "express";
 import { StatusCodes } from "http-status-codes";
-import { boardRoutes } from "~/routes/v1/boardRoutes";
-import { userRoutes } from "~/routes/v1/userRoutes";
+import { boardRoute } from "~/routes/v1/boardRoute";
+import { userRoute } from "~/routes/v1/userRoute";
 const Router = express.Router();
 
 //Check APIs v1/status
@@ -12,9 +12,9 @@ Router.get("/status", (req, res) => {
 });
 
 // BOARD APIs
-Router.use("/boards", boardRoutes);
+Router.use("/boards", boardRoute);
 
 // USER APIs
-Router.use("/users", userRoutes);
+Router.use("/users", userRoute);
 
 export const APIs_V1 = Router;

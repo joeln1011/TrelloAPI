@@ -14,4 +14,4 @@ Router.route("/")
       message: "POST: User API",
     });
   });
-export const userRoutes = Router;
+export const userRoute = Router;
