@@ -1,6 +1,7 @@
 import Joi from "joi";
 import { StatusCodes } from "http-status-codes";
-import e from "express";
+import express from "express";
+import ApiError from "~/utils/ApiError";
 
 const createNew = async (req, res, next) => {
   const correctCondition = Joi.object({
@@ -18,14 +19,15 @@ const createNew = async (req, res, next) => {
   try {
     // using abortEarly: false to return all validation errors
     await correctCondition.validateAsync(req.body, { abortEarly: false });
-
     // Validation passed, proceed to the next middleware
     next();
   } catch (error) {
-    console.log(new Error(error));
-    res
-      .status(StatusCodes.UNPROCESSABLE_ENTITY)
-      .json({ errors: new Error(error).message });
+    const errorMessage = new Error(error).message;
+    const customError = new ApiError(
+      StatusCodes.UNPROCESSABLE_ENTITY,
+      errorMessage
+    );
+    next(customError);
   }
 };
 
