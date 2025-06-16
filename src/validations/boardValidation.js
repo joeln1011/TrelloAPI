@@ -1,6 +1,5 @@
 import Joi from "joi";
 import { StatusCodes } from "http-status-codes";
-import express from "express";
 import ApiError from "~/utils/ApiError";
 
 const createNew = async (req, res, next) => {
