@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { boardModel } from "~/models/boardModel";
 import ApiError from "~/utils/ApiError";
 import { slugify } from "~/utils/formatters";
+import { cloneDeep } from "lodash";
 
 const createNew = async (reqBody) => {
   try {
@@ -23,7 +24,20 @@ const getDetails = async (boardId) => {
     if (!board) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Board Is Not Found!");
     }
-    return board;
+
+    const resBoard = cloneDeep(board);
+
+    resBoard.columns.forEach((column) => {
+      
+      //convert ObjectId to string of method toString() of JavaScript
+      column.cards = resBoard.cards.filter(
+        (card) => card.columnId.toString() === column._id.toString()
+      );
+    });
+
+    delete resBoard.cards;
+
+    return resBoard;
   } catch (error) {
     throw error;
   }
