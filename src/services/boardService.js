@@ -2,7 +2,6 @@ import { StatusCodes } from "http-status-codes";
 import { boardModel } from "~/models/boardModel";
 import ApiError from "~/utils/ApiError";
 import { slugify } from "~/utils/formatters";
-import { cloneDeep } from "lodash";
 
 const createNew = async (reqBody) => {
   try {
@@ -28,7 +27,6 @@ const getDetails = async (boardId) => {
     const resBoard = cloneDeep(board);
 
     resBoard.columns.forEach((column) => {
-      
       //convert ObjectId to string of method toString() of JavaScript
       column.cards = resBoard.cards.filter(
         (card) => card.columnId.toString() === column._id.toString()
@@ -45,5 +43,4 @@ const getDetails = async (boardId) => {
 
 export const boardService = {
   createNew,
-  getDetails,
 };
