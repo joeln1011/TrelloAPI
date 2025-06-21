@@ -1,4 +1,5 @@
-import { columnModel } from "~/models/boardModel";
+import { columnModel } from "~/models/columnModel";
+import { boardModel } from "~/models/boardModel";
 
 const createNew = async (reqBody) => {
   try {
@@ -8,6 +9,13 @@ const createNew = async (reqBody) => {
       createdColumn.insertedId
     );
 
+    if (getNewColumn) {
+      getNewColumn.cards = [];
+
+      // Update cardOrderIds to be an empty array if it is undefined
+      await boardModel.pushColumnOrderIds(getNewColumn);
+    }
+
     return getNewColumn;
   } catch (error) {
     throw error;
@@ -16,5 +24,4 @@ const createNew = async (reqBody) => {
 
 export const columnService = {
   createNew,
-  getDetails,
 };

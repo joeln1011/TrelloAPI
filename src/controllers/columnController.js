@@ -10,4 +10,4 @@ const createNew = async (req, res, next) => {
   }
 };
 
-export const columnController = { createNew, getDetails };
+export const columnController = { createNew };

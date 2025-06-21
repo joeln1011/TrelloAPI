@@ -4,7 +4,8 @@ import { BOARD_TYPES } from "~/utils/constants";
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from "~/utils/validators";
 import { columnModel } from "./columnModel";
 import { cardModel } from "./cardModel";
-import { ObjectId } from "mongodb";
+import { ObjectId, ReturnDocument } from "mongodb";
+import { after } from "lodash";
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = "boards";
@@ -34,6 +35,8 @@ const createNew = async (data) => {
     throw new Error(error);
   }
 };
+
+const INVALID_UPDATE_FIELDS = ["_id", "createdAt"];
 
 const validateBeforeCreate = async (data) => {
   return await BOARD_COLLECTION_SCHEMA.validateAsync(data, {
@@ -88,10 +91,49 @@ const getDetails = async (id) => {
   }
 };
 
+// Push columnId to columnOrderIds at the end of the board
+const pushColumnOrderIds = async (column) => {
+  try {
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(column.boardId) },
+        { $push: { columnOrderIds: new ObjectId(column._id) } },
+        { returnDocument: "after" }
+      );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+const update = async (boardId, updateData) => {
+  try {
+    // Validate the update data against the schema
+    Object.keys(updateData).forEach((fieldName) => {
+      if (INVALID_UPDATE_FIELDS.includes(fieldName)) {
+        delete updateData[fieldName];
+      }
+    });
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(boardId) },
+        { $set: { ...updateData } },
+        { returnDocument: "after" }
+      );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 export const boardModel = {
   BOARD_COLLECTION_NAME,
   BOARD_COLLECTION_SCHEMA,
   createNew,
   getDetails,
   findOneById,
+  pushColumnOrderIds,
+  update,
 };

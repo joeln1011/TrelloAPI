@@ -35,4 +35,28 @@ const createNew = async (req, res, next) => {
   }
 };
 
-export const boardValidation = { createNew };
+const update = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    title: Joi.string().min(3).max(50).trim().strict(),
+    description: Joi.string().min(3).max(256).trim().strict(),
+    type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE),
+  });
+
+  try {
+    // using abortEarly: false to return all validation errors
+    await correctCondition.validateAsync(req.body, {
+      abortEarly: false,
+      allowUnknown: true, // Allow unknown fields
+    });
+
+    next();
+  } catch (error) {
+    const errorMessage = new Error(error).message;
+    const customError = new ApiError(
+      StatusCodes.UNPROCESSABLE_ENTITY,
+      errorMessage
+    );
+    next(customError);
+  }
+};
+export const boardValidation = { createNew, update };
