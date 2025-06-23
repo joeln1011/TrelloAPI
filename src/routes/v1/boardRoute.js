@@ -16,5 +16,10 @@ Router.route("/")
 Router.route("/:id")
   .get(boardController.getDetails)
   .put(boardValidation.update, boardController.update);
-  
+
+// Route for moving a card to a different column
+Router.route("/supports/moving_card").put(
+  boardValidation.moveCardToDifferentColumn,
+  boardController.moveCardToDifferentColumn
+);
 export const boardRoute = Router;
