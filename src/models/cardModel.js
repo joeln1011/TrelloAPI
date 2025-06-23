@@ -30,8 +30,8 @@ const createNew = async (data) => {
     const validData = await validateBeforeCreate(data);
     const newCardToAdd = {
       ...validData,
-      boardId: new ObjectId(validData.boardId),
-      columnId: new ObjectId(validData.columnId),
+      boardId: new ObjectId(`${validData.boardId}`),
+      columnId: new ObjectId(`${validData.columnId}`),
     };
     const createdCard = await GET_DB()
       .collection(CARD_COLLECTION_NAME)
@@ -52,7 +52,7 @@ const findOneById = async (id) => {
     const result = await GET_DB()
       .collection(CARD_COLLECTION_NAME)
       .findOne({
-        _id: new ObjectId(id),
+        _id: new ObjectId(`${id}`),
       });
     return result;
   } catch (error) {
@@ -70,12 +70,12 @@ const update = async (cardId, updateData) => {
     });
 
     if (updateData.columnId)
-      updateData.columnId = new ObjectId(updateData.columnId);
+      updateData.columnId = new ObjectId(`${updateData.columnId}`);
 
     const result = await GET_DB()
       .collection(CARD_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: new ObjectId(cardId) },
+        { _id: new ObjectId(`${cardId}`) },
         { $set: { ...updateData } },
         { returnDocument: "after" }
       );

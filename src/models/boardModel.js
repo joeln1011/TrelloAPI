@@ -4,8 +4,7 @@ import { BOARD_TYPES } from "~/utils/constants";
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from "~/utils/validators";
 import { columnModel } from "./columnModel";
 import { cardModel } from "./cardModel";
-import { ObjectId, ReturnDocument } from "mongodb";
-import { after } from "lodash";
+import { ObjectId } from "mongodb";
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = "boards";
@@ -48,7 +47,7 @@ const findOneById = async (id) => {
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .findOne({
-        _id: new ObjectId(id),
+        _id: new ObjectId(`${id}`),
       });
     return result;
   } catch (error) {
@@ -63,7 +62,7 @@ const getDetails = async (id) => {
       .aggregate([
         {
           $match: {
-            _id: new ObjectId(id),
+            _id: new ObjectId(`${id}`),
             _destroy: false,
           },
         },
@@ -97,8 +96,8 @@ const pushColumnOrderIds = async (column) => {
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: new ObjectId(column.boardId) },
-        { $push: { columnOrderIds: new ObjectId(column._id) } },
+        { _id: new ObjectId(`${column.boardId}`) },
+        { $push: { columnOrderIds: new ObjectId(`${column._id}`) } },
         { returnDocument: "after" }
       );
     return result;
@@ -118,13 +117,13 @@ const update = async (boardId, updateData) => {
 
     if (updateData.columnOrderIds) {
       updateData.columnOrderIds = updateData.columnOrderIds.map((_id) => {
-        return new ObjectId(_id);
+        return new ObjectId(`${_id}`);
       });
     }
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: new ObjectId(boardId) },
+        { _id: new ObjectId(`${boardId}`) },
         { $set: { ...updateData } },
         { returnDocument: "after" }
       );
