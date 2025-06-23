@@ -21,7 +21,7 @@ const COLUMN_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false),
 });
 
-const  INVALID_UPDATE_FIELDS = ["_id", "boardId", "createdAt"];
+const INVALID_UPDATE_FIELDS = ["_id", "boardId", "createdAt"];
 
 const createNew = async (data) => {
   try {
@@ -81,6 +81,12 @@ const update = async (columnId, updateData) => {
         delete updateData[fieldName];
       }
     });
+
+    if (updateData.cardOrderIds) {
+      updateData.cardOrderIds = updateData.cardOrderIds.map((_id) => {
+        return new ObjectId(_id);
+      });
+    }
     const result = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOneAndUpdate(
