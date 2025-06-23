@@ -28,7 +28,7 @@ const createNew = async (data) => {
     const validData = await validateBeforeCreate(data);
     const NewColumnToAdd = {
       ...validData,
-      boardId: new ObjectId(validData.boardId),
+      boardId: new ObjectId(`${validData.boardId}`),
     };
     const createdColumn = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
@@ -49,7 +49,7 @@ const findOneById = async (id) => {
     const result = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOne({
-        _id: new ObjectId(id),
+        _id: new ObjectId(`${id}`),
       });
     return result;
   } catch (error) {
@@ -63,8 +63,8 @@ const pushCardOrderIds = async (card) => {
     const result = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: new ObjectId(card.columnId) },
-        { $push: { cardOrderIds: new ObjectId(card._id) } },
+        { _id: new ObjectId(`${card.columnId}`) },
+        { $push: { cardOrderIds: new ObjectId(`${card._id}`) } },
         { returnDocument: "after" }
       );
     return result;
@@ -84,13 +84,13 @@ const update = async (columnId, updateData) => {
 
     if (updateData.cardOrderIds) {
       updateData.cardOrderIds = updateData.cardOrderIds.map((_id) => {
-        return new ObjectId(_id);
+        return new ObjectId(`${_id}`);
       });
     }
     const result = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: new ObjectId(columnId) },
+        { _id: new ObjectId(`${columnId}`) },
         { $set: { ...updateData } },
         { returnDocument: "after" }
       );
