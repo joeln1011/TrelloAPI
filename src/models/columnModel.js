@@ -44,12 +44,13 @@ const validateBeforeCreate = async (data) => {
     abortEarly: false,
   });
 };
-const findOneById = async (id) => {
+
+const findOneById = async (columnId) => {
   try {
     const result = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOne({
-        _id: new ObjectId(`${id}`),
+        _id: new ObjectId(`${columnId}`),
       });
     return result;
   } catch (error) {
@@ -67,6 +68,20 @@ const pushCardOrderIds = async (card) => {
         { $push: { cardOrderIds: new ObjectId(`${card._id}`) } },
         { returnDocument: "after" }
       );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+const deleteOneById = async (columnId) => {
+  try {
+    const result = await GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .deleteOne({
+        _id: new ObjectId(`${columnId}`),
+      });
+
     return result;
   } catch (error) {
     throw new Error(error);
@@ -106,5 +121,6 @@ export const columnModel = {
   createNew,
   findOneById,
   pushCardOrderIds,
+  deleteOneById,
   update,
 };
