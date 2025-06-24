@@ -42,12 +42,12 @@ const validateBeforeCreate = async (data) => {
     abortEarly: false,
   });
 };
-const findOneById = async (id) => {
+const findOneById = async (boardId) => {
   try {
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .findOne({
-        _id: new ObjectId(`${id}`),
+        _id: new ObjectId(`${boardId}`),
       });
     return result;
   } catch (error) {
@@ -106,6 +106,23 @@ const pushColumnOrderIds = async (column) => {
   }
 };
 
+// Pull columnId from columnOrderIds at the end of the board
+const pullColumnOrderIds = async (column) => {
+  try {
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(`${column.boardId}`) },
+        { $pull: { columnOrderIds: new ObjectId(`${column._id}`) } },
+        { returnDocument: "after" }
+      );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+// Update board details
 const update = async (boardId, updateData) => {
   try {
     // Validate the update data against the schema
@@ -140,5 +157,6 @@ export const boardModel = {
   getDetails,
   findOneById,
   pushColumnOrderIds,
+  pullColumnOrderIds,
   update,
 };
