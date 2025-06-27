@@ -1,17 +1,12 @@
 import express from "express";
-import { StatusCodes } from "http-status-codes";
+import { userValidation } from "~/validations/userValidation";
+import { userController } from "~/controllers/userController";
 
 const Router = express.Router();
 
-Router.route("/")
-  .get((req, res) => {
-    res.status(StatusCodes.OK).json({
-      message: "GET: User API ",
-    });
-  })
-  .post((req, res) => {
-    res.status(StatusCodes.CREATED).json({
-      message: "POST: User API",
-    });
-  });
+Router.route("/register").post(
+  userValidation.createNew,
+  userController.createNew
+);
+
 export const userRoute = Router;
