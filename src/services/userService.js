@@ -7,7 +7,7 @@ import { pickUser } from '~/utils/formatters';
 import { WEBSITE_DOMAIN } from '~/utils/constants';
 import { MailerSendTemplateProvider } from '~/providers/MailerSendTemplateProvider';
 import { env } from '~/config/environment';
-
+import { JwtProvider } from '~/providers/JwtProvider';
 const createNew = async (reqBody) => {
   try {
     // Check if the email already exists
@@ -62,6 +62,75 @@ const createNew = async (reqBody) => {
   }
 };
 
+const verifyAccount = async (reqBody) => {
+  try {
+    const existUser = await userModel.findOneByEmail(reqBody.email);
+    if (!existUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!');
+    }
+    if (existUser.isActive)
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Your Account is already active!'
+      );
+    if (reqBody.token !== existUser.verifyToken) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Invalid verification token!'
+      );
+    }
+    // Update the user data to set isActive to true and clear the verifyToken
+    const updateData = {
+      isActive: true,
+      verifyToken: null, // Clear the verification token after successful verification
+    };
+
+    // Update the user in the database
+    const updatedUser = await userModel.update(existUser._id, updateData);
+    // Format the user data before return controller
+    return pickUser(updatedUser);
+  } catch (error) {
+    throw error;
+  }
+};
+
+const login = async (reqBody) => {
+  try {
+    const existUser = await userModel.findOneByEmail(reqBody.email);
+    if (!existUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!');
+    }
+    if (!existUser.isActive) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Your Account is not active yet!'
+      );
+    }
+    if (!bcrypt.compareSync(reqBody.password, existUser.password)) {
+      throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Invalid password!');
+    }
+
+    // Generate access and refresh tokens
+    const userInfo = { _id: existUser._id, email: existUser.email };
+
+    const accessToken = await JwtProvider.generateToken(
+      userInfo,
+      env.ACCESS_TOKEN_PRIVATE_KEY,
+      env.ACCESS_TOKEN_EXPIRATION
+    );
+    const refreshToken = await JwtProvider.generateToken(
+      userInfo,
+      env.REFRESH_TOKEN_PRIVATE_KEY,
+      env.REFRESH_TOKEN_EXPIRATION
+    );
+    return { accessToken, refreshToken, ...pickUser(existUser) }; // Format the user data before return
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const userService = {
   createNew,
+  verifyAccount,
+  login,
 };
