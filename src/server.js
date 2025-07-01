@@ -1,15 +1,25 @@
 /* eslint-disable quotes */
-import express from "express";
-import cors from "cors";
-import exitHook from "async-exit-hook";
-import { corsOptions } from "./config/cors";
-import { CONNECT_DB, CLOSE_DB } from "~/config/mongodb";
-import { env } from "~/config/environment";
-import { APIs_V1 } from "~/routes/v1"; // Importing routes to ensure they are registered
-import { errorHandlingMiddleware } from "~/middlewares/errorHandlingMiddleware";
+import express from 'express';
+import cors from 'cors';
+import exitHook from 'async-exit-hook';
+import { corsOptions } from './config/cors';
+import { CONNECT_DB, CLOSE_DB } from '~/config/mongodb';
+import { env } from '~/config/environment';
+import { APIs_V1 } from '~/routes/v1'; // Importing routes to ensure they are registered
+import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware';
+import cookieParser from 'cookie-parser';
 
 const START_SERVER = () => {
   const app = express();
+
+  // Fix Cache from disk of ExpressJS
+  app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
+
+  // Set up Cookie Parser
+  app.use(cookieParser());
 
   // Handle CORS
   app.use(cors(corsOptions));
@@ -18,13 +28,13 @@ const START_SERVER = () => {
   app.use(express.json());
 
   // Use APIs V1
-  app.use("/v1", APIs_V1);
+  app.use('/v1', APIs_V1);
 
   // Middleware control error
   app.use(errorHandlingMiddleware);
 
   //env production
-  if (env.BUILD_MODE === "production") {
+  if (env.BUILD_MODE === 'production') {
     app.listen(process.env.PORT, () => {
       // eslint-disable-next-line no-console
       console.log(
@@ -47,7 +57,7 @@ const START_SERVER = () => {
 
 // Only connect to MongoDB successfully then Start Server will run
 CONNECT_DB()
-  .then(() => console.log("Connected to MongoDB successfully!"))
+  .then(() => console.log('Connected to MongoDB successfully!'))
   .then(() => START_SERVER())
   .catch((error) => {
     console.log(error);
