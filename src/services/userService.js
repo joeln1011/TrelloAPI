@@ -29,8 +29,6 @@ const createNew = async (reqBody) => {
     // Create a new user in the database
     const createdUser = await userModel.createNew(newUser);
     const getNewUser = await userModel.findOneById(createdUser.insertedId);
-    console.log('Created user:', getNewUser);
-    console.log('getNewUser:', getNewUser);
     // Send an email to verify the email address
     const link = `${WEBSITE_DOMAIN}/account/verification?email=${getNewUser.email}&token=${getNewUser.verifyToken}`;
 
@@ -128,9 +126,29 @@ const login = async (reqBody) => {
     throw error;
   }
 };
-
+const refreshToken = async (clientRefreshToken) => {
+  try {
+    const refreshTokenDecoded = await JwtProvider.verifyToken(
+      clientRefreshToken,
+      env.REFRESH_TOKEN_PRIVATE_KEY
+    );
+    const userInfo = {
+      _id: refreshTokenDecoded._id,
+      email: refreshTokenDecoded.email,
+    };
+    const accessToken = await JwtProvider.generateToken(
+      userInfo,
+      env.ACCESS_TOKEN_PRIVATE_KEY,
+      env.ACCESS_TOKEN_EXPIRATION
+    );
+    return { accessToken };
+  } catch (error) {
+    throw error;
+  }
+};
 export const userService = {
   createNew,
   verifyAccount,
   login,
+  refreshToken,
 };
