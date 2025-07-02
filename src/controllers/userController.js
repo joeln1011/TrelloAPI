@@ -65,7 +65,7 @@ const refreshToken = async (req, res, next) => {
     });
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
-    next(new ApiError(StatusCodes.UNAUTHORIZED, 'Please Sign In!'));
+    next(new ApiError(StatusCodes.FORBIDDEN, 'Please Sign In!'));
   }
 };
 
@@ -74,5 +74,5 @@ export const userController = {
   verifyAccount,
   login,
   logout,
-  refreshToken, 
+  refreshToken,
 };
