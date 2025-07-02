@@ -140,7 +140,7 @@ const refreshToken = async (clientRefreshToken) => {
       userInfo,
       env.ACCESS_TOKEN_PRIVATE_KEY,
       env.ACCESS_TOKEN_EXPIRATION
-    );
+    ); 
     return { accessToken };
   } catch (error) {
     throw error;
