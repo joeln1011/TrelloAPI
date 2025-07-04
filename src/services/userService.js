@@ -140,8 +140,45 @@ const refreshToken = async (clientRefreshToken) => {
       userInfo,
       env.ACCESS_TOKEN_PRIVATE_KEY,
       env.ACCESS_TOKEN_EXPIRATION
-    ); 
+    );
     return { accessToken };
+  } catch (error) {
+    throw error;
+  }
+};
+
+const update = async (userId, reqBody) => {
+  try {
+    // Query User and checking if the user exists
+    const existUser = await userModel.findOneById(userId);
+    if (!existUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!');
+    }
+    if (!existUser.isActive) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Your Account is not active yet!'
+      );
+    }
+    // Check if the email already exists
+    let updatedUser = {};
+
+    if (reqBody.current_password && reqBody.new_password) {
+      // Check if the current password is correct
+      if (!bcrypt.compareSync(reqBody.current_password, existUser.password)) {
+        throw new ApiError(
+          StatusCodes.NOT_ACCEPTABLE,
+          'Your Current Password is incorrect!'
+        );
+      }
+      // Hash the new password
+      updatedUser = await userModel.update(existUser._id, {
+        password: bcrypt.hashSync(reqBody.new_password, 8),
+      });
+    } else {
+      updatedUser = await userModel.update(existUser._id, reqBody);
+    }
+    return pickUser(updatedUser); // Format the user data before return
   } catch (error) {
     throw error;
   }
@@ -151,4 +188,5 @@ export const userService = {
   verifyAccount,
   login,
   refreshToken,
+  update,
 };
