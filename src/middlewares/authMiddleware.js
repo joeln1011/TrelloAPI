@@ -22,7 +22,7 @@ const isAuthorized = async (req, res, next) => {
       env.ACCESS_TOKEN_PRIVATE_KEY
     );
 
-    // Check if the accessToken is valid, save decoded data to req.jwtDecoded
+    // Check if the accessToken is valid, save decoded data to req.jwtDecoded to use in next middlewares
     req.jwtDecoded = accessTokenDecoded;
 
     // If the accessToken is valid, proceed to the next middleware
