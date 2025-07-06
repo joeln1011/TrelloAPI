@@ -20,3 +20,6 @@ export const PASSWORD_RULE_MESSAGE = {
 export const PASSWORD_CONFIRMATION_MESSAGE = {
   'string.pattern.base': 'Passwords do not match',
 };
+
+export const LIMIT_COMMON_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const ALLOW_COMMON_FILE_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];

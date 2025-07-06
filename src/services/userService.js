@@ -8,6 +8,8 @@ import { WEBSITE_DOMAIN } from '~/utils/constants';
 import { MailerSendTemplateProvider } from '~/providers/MailerSendTemplateProvider';
 import { env } from '~/config/environment';
 import { JwtProvider } from '~/providers/JwtProvider';
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider';
+
 const createNew = async (reqBody) => {
   try {
     // Check if the email already exists
@@ -147,7 +149,7 @@ const refreshToken = async (clientRefreshToken) => {
   }
 };
 
-const update = async (userId, reqBody) => {
+const update = async (userId, reqBody, userAvatarFile) => {
   try {
     // Query User and checking if the user exists
     const existUser = await userModel.findOneById(userId);
@@ -174,6 +176,17 @@ const update = async (userId, reqBody) => {
       // Hash the new password
       updatedUser = await userModel.update(existUser._id, {
         password: bcrypt.hashSync(reqBody.new_password, 8),
+      });
+    } else if (userAvatarFile) {
+      // Upload the avatar image to Cloudinary
+      const uploadResult = await CloudinaryProvider.streamUpload(
+        userAvatarFile.buffer,
+        'users'
+      );
+      console.log('Cloudinary upload result:', uploadResult);
+      // Update avatar URL (secure_url) to database
+      updatedUser = await userModel.update(existUser._id, {
+        avatar: uploadResult.secure_url,
       });
     } else {
       updatedUser = await userModel.update(existUser._id, reqBody);
