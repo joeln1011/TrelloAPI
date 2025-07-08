@@ -1,13 +1,13 @@
-import Joi from "joi";
-import { GET_DB } from "~/config/mongodb";
-import { BOARD_TYPES } from "~/utils/constants";
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from "~/utils/validators";
-import { columnModel } from "./columnModel";
-import { cardModel } from "./cardModel";
-import { ObjectId } from "mongodb";
-
+import Joi from 'joi';
+import { GET_DB } from '~/config/mongodb';
+import { BOARD_TYPES } from '~/utils/constants';
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
+import { columnModel } from './columnModel';
+import { cardModel } from './cardModel';
+import { ObjectId } from 'mongodb';
+import { pagingSkipValue } from '~/utils/algorithms';
 // Define Collection (name & schema)
-const BOARD_COLLECTION_NAME = "boards";
+const BOARD_COLLECTION_NAME = 'boards';
 const BOARD_COLLECTION_SCHEMA = Joi.object({
   title: Joi.string().required().min(3).max(50).trim().strict(),
   slug: Joi.string().required().min(3).trim().strict(),
@@ -18,8 +18,16 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
     .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
     .default([]),
 
-  createdAt: Joi.date().timestamp("javascript").default(Date.now),
-  updatedAt: Joi.date().timestamp("javascript").default(null),
+  ownerIds: Joi.array()
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
+    .default([]),
+
+  memberIds: Joi.array()
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
+    .default([]),
+
+  createdAt: Joi.date().timestamp('javascript').default(Date.now),
+  updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false),
 });
 
@@ -35,7 +43,7 @@ const createNew = async (data) => {
   }
 };
 
-const INVALID_UPDATE_FIELDS = ["_id", "createdAt"];
+const INVALID_UPDATE_FIELDS = ['_id', 'createdAt'];
 
 const validateBeforeCreate = async (data) => {
   return await BOARD_COLLECTION_SCHEMA.validateAsync(data, {
@@ -69,17 +77,17 @@ const getDetails = async (id) => {
         {
           $lookup: {
             from: columnModel.COLUMN_COLLECTION_NAME,
-            localField: "_id",
-            foreignField: "boardId",
-            as: "columns",
+            localField: '_id',
+            foreignField: 'boardId',
+            as: 'columns',
           },
         },
         {
           $lookup: {
             from: cardModel.CARD_COLLECTION_NAME,
-            localField: "_id",
-            foreignField: "boardId",
-            as: "cards",
+            localField: '_id',
+            foreignField: 'boardId',
+            as: 'cards',
           },
         },
       ])
@@ -98,7 +106,7 @@ const pushColumnOrderIds = async (column) => {
       .findOneAndUpdate(
         { _id: new ObjectId(`${column.boardId}`) },
         { $push: { columnOrderIds: new ObjectId(`${column._id}`) } },
-        { returnDocument: "after" }
+        { returnDocument: 'after' }
       );
     return result;
   } catch (error) {
@@ -114,7 +122,7 @@ const pullColumnOrderIds = async (column) => {
       .findOneAndUpdate(
         { _id: new ObjectId(`${column.boardId}`) },
         { $pull: { columnOrderIds: new ObjectId(`${column._id}`) } },
-        { returnDocument: "after" }
+        { returnDocument: 'after' }
       );
     return result;
   } catch (error) {
@@ -142,9 +150,54 @@ const update = async (boardId, updateData) => {
       .findOneAndUpdate(
         { _id: new ObjectId(`${boardId}`) },
         { $set: { ...updateData } },
-        { returnDocument: "after" }
+        { returnDocument: 'after' }
       );
     return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    // Ensure page and itemsPerPage are numbers
+    // const pageNum = parseInt(page, 10) || 1;
+    // const itemsNum = parseInt(itemsPerPage, 10) || 12;
+
+    const queryConditions = [
+      { _destroy: false },
+      {
+        $or: [
+          { ownerIds: { $all: [new ObjectId(`${userId}`)] } },
+          { memberIds: { $all: [new ObjectId(`${userId}`)] } },
+        ],
+      },
+    ];
+    const query = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .aggregate(
+        [
+          { $match: { $and: queryConditions } },
+          { $sort: { title: 1 } },
+          {
+            $facet: {
+              queryBoards: [
+                { $skip: pagingSkipValue(page, itemsPerPage) }, // Use parsed numbers
+                { $limit: itemsPerPage },
+              ],
+              queryTotalBoards: [{ $count: 'countedAllBoards' }],
+            },
+          },
+        ],
+        { collation: { locale: 'en', numericOrdering: true } }
+      )
+      .toArray();
+    console.log({ query });
+    const res = query[0];
+    return {
+      boards: res.queryBoards || [],
+      totalBoards: res.queryTotalBoards[0]?.countedAllBoards || 0,
+    };
   } catch (error) {
     throw new Error(error);
   }
@@ -155,6 +208,7 @@ export const boardModel = {
   BOARD_COLLECTION_SCHEMA,
   createNew,
   getDetails,
+  getBoards,
   findOneById,
   pushColumnOrderIds,
   pullColumnOrderIds,

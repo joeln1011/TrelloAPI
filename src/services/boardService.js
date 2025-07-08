@@ -1,16 +1,17 @@
-import { StatusCodes } from "http-status-codes";
-import { boardModel } from "~/models/boardModel";
-import { columnModel } from "~/models/columnModel";
-import { cardModel } from "~/models/cardModel";
+import { StatusCodes } from 'http-status-codes';
+import { boardModel } from '~/models/boardModel';
+import { columnModel } from '~/models/columnModel';
+import { cardModel } from '~/models/cardModel';
 
-import ApiError from "~/utils/ApiError";
-import { slugify } from "~/utils/formatters";
-import { cloneDeep } from "lodash";
+import ApiError from '~/utils/ApiError';
+import { slugify } from '~/utils/formatters';
+import { cloneDeep } from 'lodash';
+import { DEFAULT_ITEM_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants';
 
 const createNew = async (reqBody) => {
   try {
     const newBoard = { ...reqBody, slug: slugify(reqBody.title) };
-    
+
     const createdBoard = await boardModel.createNew(newBoard);
     const getNewBoard = await boardModel.findOneById(createdBoard.insertedId);
 
@@ -25,7 +26,7 @@ const getDetails = async (boardId) => {
   try {
     const board = await boardModel.getDetails(boardId);
     if (!board) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Board Is Not Found!");
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Board Is Not Found!');
     }
 
     const resBoard = cloneDeep(board);
@@ -75,7 +76,23 @@ const moveCardToDifferentColumn = async (reqBody) => {
       columnId: reqBody.nextColumnId,
     });
 
-    return { updatedResult: "Successfully Updated!" };
+    return { updatedResult: 'Successfully Updated!' };
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getBoards = async (userId, page, itemPerPage) => {
+  try {
+    // default value for page and itemPerPage in case FE does not send
+    if (!page) page = DEFAULT_PAGE;
+    if (!itemPerPage) itemPerPage = DEFAULT_ITEM_PER_PAGE;
+    const result = await boardModel.getBoards(
+      userId,
+      parseInt(page, 10),
+      parseInt(itemPerPage, 10)
+    );
+    return result;
   } catch (error) {
     throw error;
   }
@@ -84,6 +101,7 @@ const moveCardToDifferentColumn = async (reqBody) => {
 export const boardService = {
   createNew,
   getDetails,
+  getBoards,
   update,
   moveCardToDifferentColumn,
 };

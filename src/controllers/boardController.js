@@ -1,5 +1,6 @@
-import { StatusCodes } from "http-status-codes";
-import { boardService } from "~/services/boardService";
+import { StatusCodes } from 'http-status-codes';
+import { get } from 'lodash';
+import { boardService } from '~/services/boardService';
 
 const createNew = async (req, res, next) => {
   try {
@@ -40,9 +41,26 @@ const moveCardToDifferentColumn = async (req, res, next) => {
     next(error);
   }
 };
+
+const getBoards = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id;
+    // page and itemPerPage can get from req.query
+    const { page, itemPerPage } = req.query;
+    const result = await boardService.getBoards(userId, {
+      page,
+      itemPerPage,
+    });
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const boardController = {
   createNew,
   getDetails,
+  getBoards,
   update,
   moveCardToDifferentColumn,
 };
