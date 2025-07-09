@@ -1,10 +1,10 @@
 import { StatusCodes } from 'http-status-codes';
-import { get } from 'lodash';
 import { boardService } from '~/services/boardService';
 
 const createNew = async (req, res, next) => {
   try {
-    const createdBoard = await boardService.createNew(req.body);
+    const userId = req.jwtDecoded._id;
+    const createdBoard = await boardService.createNew(userId, req.body);
     res.status(StatusCodes.CREATED).json(createdBoard);
   } catch (error) {
     next(error);
@@ -13,8 +13,9 @@ const createNew = async (req, res, next) => {
 
 const getDetails = async (req, res, next) => {
   try {
+    const userId = req.jwtDecoded._id;
     const boardId = req.params.id;
-    const board = await boardService.getDetails(boardId);
+    const board = await boardService.getDetails(userId, boardId);
     res.status(StatusCodes.OK).json(board);
   } catch (error) {
     next(error);
@@ -45,12 +46,9 @@ const moveCardToDifferentColumn = async (req, res, next) => {
 const getBoards = async (req, res, next) => {
   try {
     const userId = req.jwtDecoded._id;
-    // page and itemPerPage can get from req.query
-    const { page, itemPerPage } = req.query;
-    const result = await boardService.getBoards(userId, {
-      page,
-      itemPerPage,
-    });
+    // page and itemsPerPage can get from req.query
+    const { page, itemsPerPage } = req.query;
+    const result = await boardService.getBoards(userId, page, itemsPerPage);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);

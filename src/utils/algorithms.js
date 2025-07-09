@@ -4,6 +4,5 @@ export const pagingSkipValue = (page, itemsPerPage) => {
   if (isNaN(pageNum) || isNaN(itemsNum) || pageNum <= 0 || itemsNum <= 0)
     return 0;
   const skipValue = (pageNum - 1) * itemsNum;
-  console.log('SKIP:', skipValue, 'LIMIT:', itemsNum);
   return skipValue;
 };
