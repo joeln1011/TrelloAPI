@@ -31,12 +31,16 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false),
 });
 
-const createNew = async (data) => {
+const createNew = async (userId, newBoard) => {
   try {
-    const validData = await validateBeforeCreate(data);
+    const validData = await validateBeforeCreate(newBoard);
+    const newBoardToAdd = {
+      ...validData,
+      ownerIds: [new ObjectId(`${userId}`)],
+    };
     const createdBoard = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
-      .insertOne(validData);
+      .insertOne(newBoardToAdd);
     return createdBoard;
   } catch (error) {
     throw new Error(error);
@@ -63,16 +67,23 @@ const findOneById = async (boardId) => {
   }
 };
 
-const getDetails = async (id) => {
+const getDetails = async (userId, boardId) => {
   try {
+    const queryConditions = [
+      { _id: new ObjectId(`${boardId}`) },
+      { _destroy: false },
+      {
+        $or: [
+          { ownerIds: { $all: [new ObjectId(`${userId}`)] } },
+          { memberIds: { $all: [new ObjectId(`${userId}`)] } },
+        ],
+      },
+    ];
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate([
         {
-          $match: {
-            _id: new ObjectId(`${id}`),
-            _destroy: false,
-          },
+          $match: { $and: queryConditions },
         },
         {
           $lookup: {
@@ -160,10 +171,6 @@ const update = async (boardId, updateData) => {
 
 const getBoards = async (userId, page, itemsPerPage) => {
   try {
-    // Ensure page and itemsPerPage are numbers
-    // const pageNum = parseInt(page, 10) || 1;
-    // const itemsNum = parseInt(itemsPerPage, 10) || 12;
-
     const queryConditions = [
       { _destroy: false },
       {
@@ -192,7 +199,6 @@ const getBoards = async (userId, page, itemsPerPage) => {
         { collation: { locale: 'en', numericOrdering: true } }
       )
       .toArray();
-    console.log({ query });
     const res = query[0];
     return {
       boards: res.queryBoards || [],
