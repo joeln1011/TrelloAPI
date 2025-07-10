@@ -1,5 +1,5 @@
-import { StatusCodes } from "http-status-codes";
-import { cardService } from "~/services/cardService";
+import { StatusCodes } from 'http-status-codes';
+import { cardService } from '~/services/cardService';
 
 const createNew = async (req, res, next) => {
   try {
@@ -9,5 +9,13 @@ const createNew = async (req, res, next) => {
     next(error);
   }
 };
-
-export const cardController = { createNew };
+const update = async (req, res, next) => {
+  try {
+    const cardId = req.params.id;
+    const updatedCard = await cardService.update(cardId, req.body);
+    res.status(StatusCodes.OK).json(updatedCard);
+  } catch (error) {
+    next(error);
+  }
+};
+export const cardController = { createNew, update };
