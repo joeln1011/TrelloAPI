@@ -1,5 +1,5 @@
-import { cardModel } from "~/models/cardModel.js";
-import { columnModel } from "~/models/columnModel";
+import { cardModel } from '~/models/cardModel.js';
+import { columnModel } from '~/models/columnModel';
 
 const createNew = async (reqBody) => {
   try {
@@ -15,7 +15,16 @@ const createNew = async (reqBody) => {
     throw error;
   }
 };
-
+const update = async (cardId, reqBody) => {
+  try {
+    const updateData = { ...reqBody, updatedAt: new Date() };
+    const updatedCard = await cardModel.update(cardId, updateData);
+    return updatedCard;
+  } catch (error) {
+    throw error;
+  }
+};
 export const cardService = {
   createNew,
+  update,
 };
