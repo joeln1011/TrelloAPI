@@ -4,6 +4,7 @@ import { BOARD_TYPES } from '~/utils/constants';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
 import { columnModel } from './columnModel';
 import { cardModel } from './cardModel';
+import { userModel } from './userModel';
 import { ObjectId } from 'mongodb';
 import { pagingSkipValue } from '~/utils/algorithms';
 // Define Collection (name & schema)
@@ -99,6 +100,26 @@ const getDetails = async (userId, boardId) => {
             localField: '_id',
             foreignField: 'boardId',
             as: 'cards',
+          },
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'ownerIds',
+            foreignField: '_id',
+            as: 'owners',
+            // pipeline in lookup is used to project only necessary fields
+            // $project is used to remove sensitive fields like password and verityToken
+            pipeline: [{ $project: { password: 0, verityToken: 0 } }],
+          },
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'memberIds',
+            foreignField: '_id',
+            as: 'members',
+            pipeline: [{ $project: { password: 0, verityToken: 0 } }],
           },
         },
       ])

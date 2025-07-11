@@ -183,7 +183,6 @@ const update = async (userId, reqBody, userAvatarFile) => {
         userAvatarFile.buffer,
         'users'
       );
-      console.log('Cloudinary upload result:', uploadResult);
       // Update avatar URL (secure_url) to database
       updatedUser = await userModel.update(existUser._id, {
         avatar: uploadResult.secure_url,
