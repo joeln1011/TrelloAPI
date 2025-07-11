@@ -16,7 +16,7 @@ const createNew = async (reqBody) => {
     throw error;
   }
 };
-const update = async (cardId, reqBody, cardCoverFile) => {
+const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
   try {
     const updateData = { ...reqBody, updatedAt: new Date() };
 
@@ -29,6 +29,15 @@ const update = async (cardId, reqBody, cardCoverFile) => {
       updatedCard = await cardModel.update(cardId, {
         cover: uploadResult.secure_url,
       });
+    } else if (updateData.commentToAdd) {
+      // Create comment data in Database and add needed fields
+      const commentData = {
+        ...updateData.commentToAdd,
+        commentedAt: Date.now(),
+        userId: userInfo._id,
+        userEmail: userInfo.email,
+      };
+      updatedCard = await cardModel.unshiftNewComment(cardId, commentData);
     } else {
       updatedCard = await cardModel.update(cardId, updateData);
     }
