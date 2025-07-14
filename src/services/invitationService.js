@@ -8,6 +8,7 @@ import ApiError from '~/utils/ApiError';
 
 const createNewBoardInvitation = async (reqBody, inviterId) => {
   try {
+    console.log('service');
     const inviter = await userModel.findOneById(inviterId);
     const invitee = await userModel.findOneByEmail(reqBody.inviteeEmail);
     const board = await boardModel.findOneById(reqBody.boardId);

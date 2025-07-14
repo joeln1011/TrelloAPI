@@ -2,10 +2,9 @@ import { StatusCodes } from 'http-status-codes';
 import { invitationService } from '~/services/invitationService';
 
 const createNewBoardInvitation = async (req, res, next) => {
-  console.log('Controller: createNewBoardInvitation called');
-
   try {
     const inviterId = req.jwtDecoded._id;
+    console.log(inviterId);
     const resInvitation = await invitationService.createNewBoardInvitation(
       req.body,
       inviterId
