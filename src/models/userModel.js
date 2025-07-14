@@ -1,18 +1,14 @@
-import { ObjectId } from "mongodb";
-import { GET_DB } from "~/config/mongodb";
-import {
-  EMAIL_RULE,
-  EMAIL_RULE_MESSAGE,
-  PASSWORD_RULE,
-  PASSWORD_RULE_MESSAGE,
-} from "~/utils/validators";
-import Joi from "joi";
+import { ObjectId } from 'mongodb';
+import { GET_DB } from '~/config/mongodb';
+import { EMAIL_RULE, EMAIL_RULE_MESSAGE } from '~/utils/validators';
+import Joi from 'joi';
+
 const USER_ROLES = {
-  CLIENT: "client",
-  ADMIN: "admin",
+  CLIENT: 'client',
+  ADMIN: 'admin',
 };
 
-const USER_COLLECTION_NAME = "users";
+const USER_COLLECTION_NAME = 'users';
 
 const USER_COLLECTION_SCHEMA = Joi.object({
   email: Joi.string()
@@ -24,19 +20,19 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   displayName: Joi.string().required().trim().strict(),
   avatar: Joi.string().default(null),
   role: Joi.string()
-    .valid(USER_ROLES.CLIENT, USER_ROLES.ADMIN)
+    .valid(...Object.values(USER_ROLES))
     .default(USER_ROLES.CLIENT),
 
   isActive: Joi.boolean().default(false),
   verifyToken: Joi.string(),
 
-  createdAt: Joi.date().timestamp("javascript").default(Date.now),
-  updatedAt: Joi.date().timestamp("javascript").default(null),
+  createdAt: Joi.date().timestamp('javascript').default(Date.now),
+  updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false),
 });
 
 // Fields that should not be updated directly
-const INVALID_UPDATE_FIELDS = ["_id", "email", "username", "createdAt"];
+const INVALID_UPDATE_FIELDS = ['_id', 'email', 'username', 'createdAt'];
 
 const validateBeforeCreate = async (data) => {
   return await USER_COLLECTION_SCHEMA.validateAsync(data, {
@@ -91,7 +87,7 @@ const update = async (userId, updateData) => {
       .findOneAndUpdate(
         { _id: new ObjectId(`${userId}`) },
         { $set: updateData },
-        { returnDocument: "after" }
+        { returnDocument: 'after' }
       );
     return result;
   } catch (error) {
