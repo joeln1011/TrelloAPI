@@ -13,8 +13,6 @@ const createNewBoardInvitation = async (reqBody, inviterId) => {
     const invitee = await userModel.findOneByEmail(reqBody.inviteeEmail);
     const board = await boardModel.findOneById(reqBody.boardId);
 
-    console.log({ inviter, invitee, board });
-
     if (!invitee || !board || !inviter) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -28,7 +26,7 @@ const createNewBoardInvitation = async (reqBody, inviterId) => {
       type: INVITATION_TYPES.BOARD_INVITATION,
       boardInvitation: {
         boardId: board._id.toString(),
-        status: BOARD_INVITATION_STATUS.PENDING,
+        status: BOARD_INVITATION_STATUS.PENDING, // default status is PENDING
       },
     };
 
@@ -37,7 +35,7 @@ const createNewBoardInvitation = async (reqBody, inviterId) => {
       newInvitationData
     );
     const getInvitation = await invitationModel.findOneById(
-      createdInvitation.insertedId.toString()
+      createdInvitation.insertedId
     );
 
     // return the info of board, inviter and invitee for FE
@@ -53,4 +51,20 @@ const createNewBoardInvitation = async (reqBody, inviterId) => {
   }
 };
 
-export const invitationService = { createNewBoardInvitation };
+const getInvitations = async (userId) => {
+  try {
+    const getInvitations = await invitationModel.findByUser(userId);
+    // Converted inviter, invitee and board from Array to Json object before tranfer for FE
+    const resInvitations = getInvitations.map((i) => ({
+      ...i,
+      inviter: i.inviter[0] || {},
+      invitee: i.invitee[0] || {},
+      board: i.board[0] || {},
+    }));
+    return resInvitations;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const invitationService = { createNewBoardInvitation, getInvitations };
