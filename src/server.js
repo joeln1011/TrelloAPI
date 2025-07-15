@@ -1,13 +1,17 @@
 /* eslint-disable quotes */
-import express from 'express';
-import cors from 'cors';
-import exitHook from 'async-exit-hook';
-import cookieParser from 'cookie-parser';
 import { corsOptions } from './config/cors';
 import { CONNECT_DB, CLOSE_DB } from '~/config/mongodb';
 import { env } from '~/config/environment';
 import { APIs_V1 } from '~/routes/v1'; // Importing routes to ensure they are registered
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware';
+import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket';
+
+import express from 'express';
+import cors from 'cors';
+import exitHook from 'async-exit-hook';
+import cookieParser from 'cookie-parser';
+import socketIo from 'socket.io';
+import http from 'http';
 
 const START_SERVER = () => {
   const app = express();
@@ -33,18 +37,26 @@ const START_SERVER = () => {
   // Middleware control error
   app.use(errorHandlingMiddleware);
 
+  // Create HTTP server covering Express app to do real-time with socket io
+  const server = http.createServer(app);
+  // Create Socket.IO server and cors
+  const io = socketIo(server, { cors: corsOptions });
+
+  io.on('connection', (socket) => {
+    inviteUserToBoardSocket(socket);
+  });
+
   //env production
   if (env.BUILD_MODE === 'production') {
-    app.listen(process.env.PORT, () => {
-      // eslint-disable-next-line no-console
+    //using server.listen instead app.listen because already covered express and config socket io
+    server.listen(process.env.PORT, () => {
       console.log(
         `Production: Hello ${env.AUTHOR}, Back-end is running successfully at port: ${process.env.PORT}`
       );
     });
   } else {
     //env local development
-    app.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
-      // eslint-disable-next-line no-console
+    server.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
       console.log(
         `Local Dev: Hello ${env.AUTHOR}, Back-end is running successfully at port: http://${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}`
       );
