@@ -38,6 +38,12 @@ const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
         userEmail: userInfo.email,
       };
       updatedCard = await cardModel.unshiftNewComment(cardId, commentData);
+    } else if (updateData.incomingMemberInfo) {
+      // Handle adding/removing card members
+      updatedCard = await cardModel.updateMembers(
+        cardId,
+        updateData.incomingMemberInfo
+      );
     } else {
       updatedCard = await cardModel.update(cardId, updateData);
     }
