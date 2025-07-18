@@ -82,7 +82,7 @@ const moveCardToDifferentColumn = async (reqBody) => {
   }
 };
 
-const getBoards = async (userId, page, itemsPerPage) => {
+const getBoards = async (userId, page, itemsPerPage, queryFilters) => {
   try {
     // default value for page and itemsPerPage in case FE does not send
     if (!page) page = DEFAULT_PAGE;
@@ -90,7 +90,8 @@ const getBoards = async (userId, page, itemsPerPage) => {
     const result = await boardModel.getBoards(
       userId,
       parseInt(page, 10),
-      parseInt(itemsPerPage, 10)
+      parseInt(itemsPerPage, 10),
+      queryFilters
     );
     return result;
   } catch (error) {

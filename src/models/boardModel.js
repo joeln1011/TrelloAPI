@@ -193,7 +193,7 @@ const update = async (boardId, updateData) => {
   }
 };
 
-const getBoards = async (userId, page, itemsPerPage) => {
+const getBoards = async (userId, page, itemsPerPage, queryFilters) => {
   try {
     const queryConditions = [
       { _destroy: false },
@@ -204,6 +204,15 @@ const getBoards = async (userId, page, itemsPerPage) => {
         ],
       },
     ];
+    // Handle queryFilter for searchBoard
+    if (queryFilters) {
+      Object.keys(queryFilters).forEach((key) => {
+        // no need capitalize the first letter of the key
+        queryConditions.push({
+          [key]: { $regex: new RegExp(queryFilters[key], 'i') },
+        });
+      });
+    }
     const query = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate(
@@ -220,7 +229,7 @@ const getBoards = async (userId, page, itemsPerPage) => {
             },
           },
         ],
-        { collation: { locale: 'en', numericOrdering: true } }
+        { collation: { locale: 'en' } }
       )
       .toArray();
     const res = query[0];
