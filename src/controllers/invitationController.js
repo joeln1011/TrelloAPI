@@ -4,7 +4,6 @@ import { invitationService } from '~/services/invitationService';
 const createNewBoardInvitation = async (req, res, next) => {
   try {
     const inviterId = req.jwtDecoded._id;
-    console.log(inviterId);
     const resInvitation = await invitationService.createNewBoardInvitation(
       req.body,
       inviterId
